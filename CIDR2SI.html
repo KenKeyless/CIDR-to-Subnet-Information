@@ -129,12 +129,47 @@
 
         function displayResults(numIPs, maskBits, range, inputHex) {
             const resultDiv = document.getElementById("result");
+        
+            // Calculate broadcast address
+            const broadcastAddress = calculateBroadcastAddress(maskBits);
+        
             resultDiv.innerHTML = `<p>Subnet Mask: ${calculateSubnetMask(maskBits)}</p>
-                                   <p>Range: ${range}</p>
-                                   <p>Input Hex: ${inputHex}</p>
-                                   <p>Hex Subnet Mask: ${convertToHex(calculateSubnetMask(maskBits))}</p>`;
+            <p>Broadcast Address: ${broadcastAddress}</p>                       
+            <p>Range: ${range}</p>
+            <p>Input Hex: ${inputHex}</p>
+            <p>Hex Subnet Mask: ${convertToHex(calculateSubnetMask(maskBits))}</p>`;
         }
-
+        
+        function calculateBroadcastAddress(prefixLength) {
+            const invertedSubnetMask = calculateInvertedSubnetMask(prefixLength);
+            const networkAddress = calculateNetworkAddress();
+            const networkAddressParts = networkAddress.split('.').map(Number);
+            const invertedSubnetMaskParts = invertedSubnetMask.split('.').map(Number);
+            const broadcastAddressParts = [];
+        
+            for (let i = 0; i < 4; i++) {
+                broadcastAddressParts.push(networkAddressParts[i] | invertedSubnetMaskParts[i]);
+            }
+        
+            return broadcastAddressParts.join('.');
+        }
+        
+        function calculateInvertedSubnetMask(prefixLength) {
+            const mask = new Array(4).fill(0);
+            for (let i = 0; i < prefixLength; i++) {
+                mask[i >> 3] |= 1 << (7 - (i % 8));
+            }
+        
+            const invertedSubnetMask = mask.map(part => 255 - part);
+            return invertedSubnetMask.join('.');
+        }
+        
+        function calculateNetworkAddress() {
+            const input = document.getElementById("input").value;
+            const parts = input.split('/');
+            return parts[0];
+        }
+        
         function calculateSubnetMask(prefixLength) {
             const mask = new Array(4).fill(0);
             for (let i = 0; i < prefixLength; i++) {
@@ -142,11 +177,22 @@
             }
             return mask.join('.');
         }
-
+        
         function convertToHex(ipAddress) {
             const parts = ipAddress.split('.').map(part => parseInt(part, 10));
             return parts.map(part => part.toString(16).toUpperCase()).join('.');
         }
+        
     </script>
+    <h2>Explanation of  Conversion</h2>
+
+    <p><strong>IP Count Calculation:</strong> The number of IP addresses in a subnet is determined using the formula 2^(32 - PrefixLength), where PrefixLength is the number of bits set in the subnet mask. The higher the PrefixLength, the smaller the subnet, resulting in fewer IP addresses.</p>
+
+    <p><strong>Subnet Mask Calculation:</strong> To calculate the subnet mask, we start with an array of four zeros, each representing an octet in the subnet mask (e.g., 255.255.255.0). We set the bits in the subnet mask by iterating through the bits corresponding to the PrefixLength and marking them as '1'.</p>
+
+    <p><strong>IP Range Calculation:</strong> To find the IP range, we perform bitwise operations on the given IP address and the subnet mask. The result of these operations gives us the starting and ending IP addresses in the subnet.</p>
+
+    <p><strong>Hexadecimal Conversion:</strong> The tool converts IP addresses and subnet masks from decimal format to hexadecimal format for display. This is achieved by converting each octet of the IP address to its hexadecimal representation</p>
+
 </body>
 </html>
