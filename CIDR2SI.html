@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CIDR to Subnet Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        #result {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CIDR to Subnet Information</h1>
+
+        <label for="input">Enter CIDR without Mask:</label>
+        <input type="text" id="input" placeholder="e.g., 10.200.20.0" />
+
+        <label for="maskBits">Select Mask Bits:</label>
+        <select id="maskBits">
+            <!-- Mask bit options with CIDR notation -->
+            <option value="32">/32 (1 IP)</option>
+            <option value="31">/31 (2 IPs)</option>
+            <option value="30">/30 (4 IPs)</option>
+            <option value="29">/29 (8 IPs)</option>
+            <option value="28">/28 (16 IPs)</option>
+            <option value="27">/27 (32 IPs)</option>
+            <option value="26">/26 (64 IPs)</option>
+            <option value="25">/25 (128 IPs)</option>
+            <option value="24">/24 (256 IPs)</option>
+            <option value="23">/23 (512 IPs)</option>
+            <option value="22">/22 (1,024 IPs)</option>
+            <option value="21">/21 (2,048 IPs)</option>
+            <option value="20">/20 (4,096 IPs)</option>
+            <option value="19">/19 (8,192 IPs)</option>
+            <option value="18">/18 (16,384 IPs)</option>
+            <option value="17">/17 (32,768 IPs)</option>
+            <option value="16">/16 (65,536 IPs)</option>
+            <option value="15">/15 (131,072 IPs)</option>
+            <option value="14">/14 (262,144 IPs)</option>
+            <option value="13">/13 (524,288 IPs)</option>
+            <option value="12">/12 (1,048,576 IPs)</option>
+            <option value="11">/11 (2,097,152 IPs)</option>
+            <option value="10">/10 (4,194,304 IPs)</option>
+            <option value="9">/9 (8,388,608 IPs)</option>
+            <option value="8">/8 (16,777,216 IPs)</option>
+            <option value="7">/7 (33,554,432 IPs)</option>
+            <option value="6">/6 (67,108,864 IPs)</option>
+            <option value="5">/5 (134,217,728 IPs)</option>
+            <option value="4">/4 (268,435,456 IPs)</option>
+            <option value="3">/3 (536,870,912 IPs)</option>
+            <option value="2">/2 (1,073,741,824 IPs)</option>
+            <option value="1">/1 (2,147,483,648 IPs)</option>
+        </select>
+
+        <button onclick="calculateSubnetInfo()">Calculate</button>
+
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function calculateSubnetInfo() {
+            const input = document.getElementById("input").value;
+            const maskBits = document.getElementById("maskBits").value;
+            const resultDiv = document.getElementById("result");
+
+            if (input) {
+                // Combine the CIDR input and selected mask bits to form a complete CIDR notation.
+                const cidr = input + '/' + maskBits;
+                const parts = cidr.split('/');
+                // Calculate the number of IPs in the range using the provided mask bits.
+                const numIPs = Math.pow(2, 32 - parseInt(parts[1], 10));
+                // Calculate the IP range based on the CIDR notation.
+                const range = calculateIPRange(parts[0], parseInt(parts[1], 10));
+                // Convert the input IP to hexadecimal.
+                const inputHex = convertToHex(parts[0]);
+                // Display the results.
+                displayResults(numIPs, maskBits, range, inputHex);
+            } else {
+                resultDiv.textContent = "Invalid CIDR notation.";
+            }
+        }
+
+        function calculateIPRange(ipAddress, prefixLength) {
+            const ipParts = ipAddress.split('.').map(Number);
+            const subnetMaskParts = calculateSubnetMask(prefixLength).split('.').map(Number);
+
+            // Calculate the start and end IPs based on the subnet mask.
+            const startIP = ipParts.map((part, index) => part & subnetMaskParts[index]).join('.');
+            const endIP = ipParts.map((part, index) => part | (~subnetMaskParts[index] & 0xFF)).join('.');
+
+            return `${startIP} - ${endIP}`;
+        }
+
+        function displayResults(numIPs, maskBits, range, inputHex) {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `<p>IPs in Range: ${numIPs}</p>
+                                   <p>Mask Bits: ${maskBits}</p>
+                                   <p>Subnet Mask: ${calculateSubnetMask(maskBits)}</p>
+                                   <p>Range: ${range}</p>
+                                   <p>Input Hex: ${inputHex}</p>
+                                   <p>Hex Subnet Mask: ${convertToHex(calculateSubnetMask(maskBits))}</p>`;
+        }
+
+        function calculateSubnetMask(prefixLength) {
+            const mask = new Array(4).fill(0);
+            for (let i = 0; i < prefixLength; i++) {
+                mask[i >> 3] |= 1 << (7 - (i % 8));
+            }
+            return mask.join('.');
+        }
+
+        function convertToHex(ipAddress) {
+            const parts = ipAddress.split('.').map(part => parseInt(part, 10));
+            return parts.map(part => part.toString(16).toUpperCase()).join('.');
+        }
+    </script>
+</body>
+</html>
