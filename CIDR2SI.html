@@ -48,7 +48,7 @@
     <div class="container">
         <h1>CIDR to Subnet Information</h1>
 
-        <label for="input">Enter CIDR without Mask:</label>
+        <label for="input">Enter CIDR:</label>
         <input type="text" id="input" placeholder="e.g., 10.200.20.0" />
 
         <label for="maskBits">Select Mask Bits:</label>
@@ -129,9 +129,7 @@
 
         function displayResults(numIPs, maskBits, range, inputHex) {
             const resultDiv = document.getElementById("result");
-            resultDiv.innerHTML = `<p>IPs in Range: ${numIPs}</p>
-                                   <p>Mask Bits: ${maskBits}</p>
-                                   <p>Subnet Mask: ${calculateSubnetMask(maskBits)}</p>
+            resultDiv.innerHTML = `<p>Subnet Mask: ${calculateSubnetMask(maskBits)}</p>
                                    <p>Range: ${range}</p>
                                    <p>Input Hex: ${inputHex}</p>
                                    <p>Hex Subnet Mask: ${convertToHex(calculateSubnetMask(maskBits))}</p>`;
